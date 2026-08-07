@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<title>Big Coffee — Caixa</title>
+<meta name="theme-color" content="#0D4DED">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Big Coffee">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --azul:#0D4DED; --azul-esc:#0A38B0; --azul-claro:#E8EFFE;
+  --tinta:#0F1B3D; --cinza:#6B7794; --linha:#DCE3F2; --fundo:#F4F7FD;
+  --verde:#0E9F6E; --vermelho:#E02424; --amarelo:#F5A524;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:'Fredoka',system-ui,-apple-system,sans-serif;
+  background:var(--fundo); color:var(--tinta);
+  overscroll-behavior-y:none; -webkit-user-select:none; user-select:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text}
+.chewy{font-family:'Chewy',cursive;font-weight:400;letter-spacing:.5px}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* ---------- TELA DE ENTRADA ---------- */
+#entrada{
+  position:fixed;inset:0;z-index:100;background:var(--azul);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:32px 24px calc(32px + var(--safe-b));text-align:center;color:#fff;
+}
+#entrada .logo{font-size:3rem;line-height:1;margin-bottom:6px}
+#entrada .sub{font-size:1rem;opacity:.85;margin-bottom:34px;font-weight:500}
+#entrada label{display:block;font-size:.95rem;font-weight:600;margin-bottom:10px;opacity:.9}
+#entrada input{
+  width:100%;max-width:340px;padding:16px 18px;border-radius:16px;border:3px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.14);color:#fff;font-size:1.15rem;font-weight:600;text-align:center;outline:none;
+}
+#entrada input::placeholder{color:rgba(255,255,255,.55);font-weight:400}
+#entrada input:focus{border-color:#fff;background:rgba(255,255,255,.22)}
+#entrada .ok{
+  margin-top:22px;width:100%;max-width:340px;padding:17px;border-radius:16px;background:#fff;color:var(--azul);
+  font-size:1.1rem;font-weight:700;box-shadow:0 6px 0 rgba(0,0,0,.18);
+}
+#entrada .ok:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+#entrada .nota{margin-top:26px;font-size:.8rem;opacity:.7;max-width:320px;line-height:1.5}
+
+/* ---------- ESTRUTURA ---------- */
+#app{display:none;flex-direction:column;height:100%}
+#app.on{display:flex}
+header{
+  background:var(--azul);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 12px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+header .marca{font-size:1.5rem;line-height:1}
+header .quem{font-size:.72rem;opacity:.85;text-align:right;line-height:1.35;font-weight:500}
+header .quem b{display:block;font-size:.86rem;font-weight:600;opacity:1}
+
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.view{display:none;padding:14px 14px 0}
+.view.on{display:block}
+
+/* ---------- CAIXA ---------- */
+.tabs{display:flex;gap:7px;margin-bottom:13px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  padding:9px 16px;border-radius:999px;background:#fff;border:2px solid var(--linha);
+  font-size:.87rem;font-weight:600;color:var(--cinza);white-space:nowrap;flex-shrink:0;
+}
+.tab.on{background:var(--azul);border-color:var(--azul);color:#fff}
+
+.grade{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.prod{
+  position:relative;background:#fff;border:2.5px solid var(--linha);border-radius:17px;
+  padding:13px 11px;min-height:92px;display:flex;flex-direction:column;justify-content:space-between;
+  text-align:left;transition:transform .07s;
+}
+.prod:active{transform:scale(.96)}
+.prod.tem{border-color:var(--azul);background:var(--azul-claro)}
+.prod .n{font-size:.93rem;font-weight:600;line-height:1.22}
+.prod .p{font-size:1.15rem;font-weight:700;color:var(--azul);margin-top:8px}
+.prod .badge{
+  position:absolute;top:-8px;right:-8px;min-width:28px;height:28px;border-radius:999px;
+  background:var(--azul);color:#fff;font-size:.88rem;font-weight:700;
+  display:none;align-items:center;justify-content:center;border:3px solid var(--fundo);padding:0 6px;
+}
+.prod.tem .badge{display:flex}
+
+/* ---------- BARRA DO CARRINHO ---------- */
+#barra{
+  position:fixed;left:0;right:0;bottom:calc(64px + var(--safe-b));z-index:40;
+  padding:0 12px;display:none;
+}
+#barra.on{display:block}
+#barra .in{
+  background:var(--azul);color:#fff;border-radius:18px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(13,77,237,.4);
+}
+#barra .qtd{background:rgba(255,255,255,.25);border-radius:999px;padding:5px 11px;font-size:.85rem;font-weight:700;flex-shrink:0}
+#barra .tot{flex:1;font-size:1.35rem;font-weight:700}
+#barra .go{background:#fff;color:var(--azul);border-radius:13px;padding:11px 18px;font-size:.95rem;font-weight:700;flex-shrink:0}
+#barra .lim{opacity:.75;font-size:1.4rem;padding:0 4px;flex-shrink:0}
+
+/* ---------- NAV ---------- */
+nav{
+  flex-shrink:0;display:grid;grid-template-columns:repeat(4,1fr);
+  background:#fff;border-top:2px solid var(--linha);
+  padding-bottom:var(--safe-b);height:calc(64px + var(--safe-b));
+}
+nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--cinza);font-size:.68rem;font-weight:600}
+nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--azul)}
+
+/* ---------- FOLHA (bottom sheet) ---------- */
+.folha{position:fixed;inset:0;z-index:80;display:none}
+.folha.on{display:block}
+.folha .veu{position:absolute;inset:0;background:rgba(15,27,61,.55)}
+.folha .cx{
+  position:absolute;left:0;right:0;bottom:0;background:#fff;
+  border-radius:26px 26px 0 0;padding:20px 18px calc(20px + var(--safe-b));
+  max-height:92%;overflow-y:auto;animation:sobe .22s ease-out;
+}
+@keyframes sobe{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.folha h2{font-size:1.5rem;margin:0 0 4px}
+.folha .dica{font-size:.82rem;color:var(--cinza);margin:0 0 16px}
+.campo{width:100%;padding:15px 16px;border-radius:15px;border:2.5px solid var(--linha);font-size:1.05rem;font-weight:500;font-family:inherit;outline:none;background:#fff;color:var(--tinta)}
+.campo:focus{border-color:var(--azul)}
+.campo.erro{border-color:var(--vermelho);animation:tremer .3s}
+@keyframes tremer{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.rot{font-size:.85rem;font-weight:600;color:var(--cinza);margin:16px 0 8px;display:block}
+.pgtos{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pg{padding:15px 10px;border-radius:15px;border:2.5px solid var(--linha);background:#fff;font-size:.95rem;font-weight:600;color:var(--cinza)}
+.pg.on{border-color:var(--azul);background:var(--azul-claro);color:var(--azul)}
+.btn{width:100%;padding:17px;border-radius:16px;background:var(--azul);color:#fff;font-size:1.1rem;font-weight:700;margin-top:18px}
+.btn:active{opacity:.85}
+.btn.sec{background:#fff;color:var(--azul);border:2.5px solid var(--azul);margin-top:9px}
+.btn.cinza{background:var(--fundo);color:var(--cinza);border:2.5px solid var(--linha);margin-top:9px;font-size:1rem}
+.btn[disabled]{opacity:.45}
+.lista-carr{margin:4px 0 6px;border-top:2px solid var(--linha)}
+.lc{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1.5px solid var(--linha)}
+.lc .lcn{flex:1;font-size:.95rem;font-weight:500}
+.lc .lcn small{display:block;color:var(--cinza);font-size:.78rem;font-weight:400}
+.lc .lcv{font-weight:700;font-size:.98rem}
+.qc{display:flex;align-items:center;gap:8px}
+.qb{width:32px;height:32px;border-radius:10px;background:var(--fundo);border:2px solid var(--linha);font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.qn{min-width:20px;text-align:center;font-weight:700}
+
+/* ---------- CARDS / VENDAS ---------- */
+.card{background:#fff;border:2.5px solid var(--linha);border-radius:18px;padding:15px;margin-bottom:11px}
+.cupom{border-style:dashed}
+.cupom .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:9px}
+.cupom .cli{font-size:1.02rem;font-weight:600;line-height:1.25}
+.cupom .cli small{display:block;color:var(--cinza);font-size:.76rem;font-weight:400;margin-top:2px}
+.cupom .vl{font-size:1.18rem;font-weight:700;color:var(--azul);white-space:nowrap}
+.cupom .itens{font-size:.86rem;color:var(--cinza);line-height:1.55;border-top:1.5px dashed var(--linha);padding-top:8px}
+.cupom .pe{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.pill{font-size:.73rem;font-weight:600;padding:4px 11px;border-radius:999px;background:var(--azul-claro);color:var(--azul)}
+.del{font-size:.8rem;color:var(--vermelho);font-weight:600;padding:6px 4px}
+.vazio{text-align:center;padding:56px 20px;color:var(--cinza)}
+.vazio .em{font-size:2.6rem;margin-bottom:10px;display:block}
+.vazio p{font-size:.92rem;margin:0;line-height:1.5}
+
+/* ---------- KPIs ---------- */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.kpi{background:#fff;border:2.5px solid var(--linha);border-radius:16px;padding:13px}
+.kpi.destaque{background:var(--azul);border-color:var(--azul);color:#fff;grid-column:1/-1}
+.kpi .r{font-size:.73rem;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:1.5rem;font-weight:700;margin-top:3px;line-height:1.1}
+.kpi.destaque .v{font-size:2.3rem}
+
+/* ---------- POP ---------- */
+.acc{background:#fff;border:2.5px solid var(--linha);border-radius:18px;margin-bottom:10px;overflow:hidden}
+.acc>button{width:100%;padding:16px;display:flex;align-items:center;gap:11px;text-align:left;font-size:1rem;font-weight:600}
+.acc>button .em{font-size:1.25rem;flex-shrink:0}
+.acc>button .ar{margin-left:auto;color:var(--cinza);transition:transform .2s;flex-shrink:0}
+.acc.on>button .ar{transform:rotate(180deg)}
+.acc .corpo{display:none;padding:0 16px 16px;font-size:.9rem;line-height:1.6;color:#33406B}
+.acc.on .corpo{display:block}
+.acc .corpo h4{font-size:.95rem;margin:14px 0 5px;color:var(--azul)}
+.acc .corpo h4:first-child{margin-top:0}
+.acc .corpo ol,.acc .corpo ul{margin:0;padding-left:19px}
+.acc .corpo li{margin-bottom:5px}
+.acc .corpo .hora{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1.5px solid var(--linha);font-weight:500}
+.acc .corpo .hora b{color:var(--azul);font-family:'Chewy',cursive;font-size:1.1rem;font-weight:400}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1.5px solid var(--linha)}
+.chk .bx{width:21px;height:21px;border:2.5px solid var(--linha);border-radius:7px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff}
+.chk.ok .bx{background:var(--verde);border-color:var(--verde)}
+.chk.ok span{text-decoration:line-through;color:var(--cinza)}
+
+/* ---------- AVISOS ---------- */
+#toast{
+  position:fixed;left:14px;right:14px;bottom:calc(78px + var(--safe-b));z-index:200;
+  background:var(--tinta);color:#fff;padding:14px 17px;border-radius:15px;
+  font-size:.92rem;font-weight:500;text-align:center;opacity:0;transform:translateY(14px);
+  transition:.22s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+#toast.on{opacity:1;transform:translateY(0)}
+.alerta{background:#FFF6E5;border:2.5px solid var(--amarelo);border-radius:16px;padding:13px 15px;font-size:.86rem;line-height:1.5;margin-bottom:12px;color:#8A5A00}
+.alerta b{display:block;margin-bottom:3px;color:#6B4400}
+h3.sec{font-size:1.35rem;margin:2px 0 12px}
+.rodape-nota{font-size:.75rem;color:var(--cinza);text-align:center;padding:16px 10px 20px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ══════════ ENTRADA ══════════ -->
+<div id="entrada">
+  <div class="logo chewy">bigcoffee.</div>
+  <div class="sub">Caixa do domingo</div>
+  <label for="inpNome">Qual é o seu nome?</label>
+  <input id="inpNome" type="text" placeholder="Seu nome" autocomplete="name" autocapitalize="words" enterkeyhint="go">
+  <button class="ok" onclick="entrar()">Começar</button>
+  <div class="nota">Seu nome fica gravado neste celular e assina o relatório que você enviar no grupo.</div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+  <header>
+    <div class="marca chewy">bigcoffee.</div>
+    <div class="quem"><b id="hdrNome">—</b><span id="hdrData">—</span></div>
+  </header>
+
+  <main>
+    <!-- CAIXA -->
+    <section class="view on" id="v-caixa">
+      <div class="tabs" id="tabsCat"></div>
+      <div class="grade" id="grade"></div>
+      <div style="height:96px"></div>
+    </section>
+
+    <!-- VENDAS -->
+    <section class="view" id="v-vendas">
+      <h3 class="sec chewy">Vendas de hoje</h3>
+      <div class="kpis">
+        <div class="kpi destaque"><div class="r">Total do dia</div><div class="v" id="kTotal">R$ 0,00</div></div>
+        <div class="kpi"><div class="r">Vendas</div><div class="v" id="kQtd">0</div></div>
+        <div class="kpi"><div class="r">Ticket médio</div><div class="v" id="kTicket">R$ 0,00</div></div>
+      </div>
+      <div id="listaVendas"></div>
+      <div style="height:20px"></div>
+    </section>
+
+    <!-- POP -->
+    <section class="view" id="v-pop">
+      <h3 class="sec chewy">Como fazer</h3>
+      <div id="popWrap"></div>
+      <div class="rodape-nota">Conteúdo do POP Big Coffee.<br>Dúvida que não está aqui: chame a liderança no grupo.</div>
+    </section>
+
+    <!-- FECHAR -->
+    <section class="view" id="v-fechar">
+      <h3 class="sec chewy">Fechar o domingo</h3>
+      <div id="fecharCorpo"></div>
+      <div style="height:20px"></div>
+    </section>
+  </main>
+
+  <!-- BARRA DO CARRINHO -->
+  <div id="barra"><div class="in">
+    <button class="lim" onclick="limparCarrinho()" aria-label="Limpar">×</button>
+    <div class="qtd" id="bQtd">0</div>
+    <div class="tot" id="bTot">R$ 0,00</div>
+    <button class="go" onclick="abrirFinalizar()">Finalizar</button>
+  </div></div>
+
+  <nav>
+    <button class="on" data-v="caixa" onclick="irPara('caixa')">
+      <svg viewBox="0 0 24 24"><path d="M3 10h18M5 10V7a2 2 0 012-2h10a2 2 0 012 2v3M4 10h16v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/></svg>Caixa</button>
+    <button data-v="vendas" onclick="irPara('vendas')">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 13h6M9 17h4"/></svg>Vendas</button>
+    <button data-v="pop" onclick="irPara('pop')">
+      <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>Como fazer</button>
+    <button data-v="fechar" onclick="irPara('fechar')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M9 15l2 2 4-4"/></svg>Fechar</button>
+  </nav>
+</div>
+
+<!-- ══════════ FOLHA: FINALIZAR ══════════ -->
+<div class="folha" id="fFinalizar">
+  <div class="veu" onclick="fecharFolha('fFinalizar')"></div>
+  <div class="cx">
+    <h2 class="chewy">Finalizar venda</h2>
+    <p class="dica">Confira os itens antes de cobrar.</p>
+    <div class="lista-carr" id="carrLista"></div>
+    <label class="rot">Nome de quem está pagando</label>
+    <input id="inpCliente" class="campo" type="text" placeholder="Nome" autocapitalize="words" enterkeyhint="done">
+    <label class="rot">Forma de pagamento</label>
+    <div class="pgtos" id="pgtos"></div>
+    <button class="btn" id="btnConfirmar" onclick="confirmarVenda()">Confirmar R$ 0,00</button>
+    <button class="btn cinza" onclick="fecharFolha('fFinalizar')">Voltar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="jspdf.umd.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   BIG COFFEE — APP DO CAIXA
+   Cada celular guarda apenas as vendas do próprio dia.
+   O controle oficial é o relatório em PDF enviado ao grupo.
+   ══════════════════════════════════════════════════════════════ */
+
+const VERSAO_CATALOGO = '2026-08-07';
+
+/* Cardápio embutido, tirado do backup do sistema de 02/08/2026 — só os
+   produtos marcados como disponíveis. O custo vem das fichas técnicas e
+   serve para o lucro sair certo no relatório.
+   Espresso Duplo ficou de fora: está indisponível no sistema. */
+const PRODUTOS = [
+  {id:'p1',                  nome:'Espresso Tradicional',       cat:'Bebidas',    preco:8,    custo:2.8864},
+  {id:'p2',                  nome:'Latte',                      cat:'Bebidas',    preco:11,   custo:4.2029},
+  {id:'p3',                  nome:'Mocha Doce de Leite',        cat:'Bebidas',    preco:14,   custo:7.3137},
+  {id:'p1785345578036',      nome:'Mocha Doce de Leite Gelado', cat:'Bebidas',    preco:14,   custo:7.5137},
+  {id:'p4',                  nome:'Café Filtrado',              cat:'Bebidas',    preco:4,    custo:0.9359},
+  {id:'p17853573785863406',  nome:'Coca da Moda',               cat:'Bebidas',    preco:12,   custo:2.2479},
+  {id:'p17853573785867833',  nome:'Pink Limonade',              cat:'Bebidas',    preco:12,   custo:3.4639},
+  {id:'p7',                  nome:'Esfiha de Carne',            cat:'Comidas',    preco:8.5,  custo:6.16},
+  {id:'p11',                 nome:'Coxinha c/ Catupiry',        cat:'Comidas',    preco:8.5,  custo:6.56},
+  {id:'p8',                  nome:'Pão de Queijo',              cat:'Comidas',    preco:6,    custo:1.852},
+  {id:'p9',                  nome:'Misto Quente',               cat:'Comidas',    preco:7,    custo:2.91},
+  {id:'p10',                 nome:'Croissant de Chocolate',     cat:'Comidas',    preco:10,   custo:7.5},
+  {id:'p1785357954303',      nome:'Halls',                      cat:'Bomboniere', preco:3,    custo:0},
+  {id:'p1785358007253',      nome:'Mentos',                     cat:'Bomboniere', preco:3,    custo:0},
+  {id:'p1785357994219',      nome:'Trident',                    cat:'Bomboniere', preco:4,    custo:0}
+];
+const CATEGORIAS = ['Bebidas','Comidas','Bomboniere'];
+const PAGAMENTOS = ['Pix','Débito','Crédito','Dinheiro'];
+const PIX_IGREJA = 'pixbighome@gmail.com';
+
+/* ---------- ESTADO ---------- */
+const K = {nome:'bcapp_voluntario', vendas:'bcapp_vendas', chk:'bcapp_checklists'};
+let VOLUNTARIO = localStorage.getItem(K.nome) || '';
+let VENDAS   = JSON.parse(localStorage.getItem(K.vendas) || '[]');
+let CHECKS   = JSON.parse(localStorage.getItem(K.chk)    || '{}');
+let carrinho = [];
+let pgtoAtual = 'Pix';
+let catAtual  = 'Bebidas';
+
+/* ---------- UTILIDADES ---------- */
+const R = n => 'R$ ' + Number(n||0).toFixed(2).replace('.',',');
+const $ = id => document.getElementById(id);
+
+/* Data no fuso local. toISOString() devolve UTC e joga a venda
+   da noite para o dia seguinte — por isso não é usado aqui. */
+function dataHoje(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function horaAgora(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function dataBR(iso){
+  if(!iso) return '';
+  const [a,m,d] = iso.split('-');
+  return d + '/' + m + '/' + a;
+}
+function dataExtenso(iso){
+  const [a,m,d] = iso.split('-');
+  const dt = new Date(Number(a), Number(m)-1, Number(d));
+  return dt.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+function salvar(){
+  localStorage.setItem(K.vendas, JSON.stringify(VENDAS));
+  localStorage.setItem(K.chk,    JSON.stringify(CHECKS));
+}
+let toastTimer;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('on'), 2800);
+}
+function vibrar(ms){ if(navigator.vibrate) navigator.vibrate(ms); }
+
+/* ---------- ENTRADA ---------- */
+function entrar(){
+  const n = $('inpNome').value.trim();
+  if(n.length < 2){
+    $('inpNome').classList.add('erro');
+    setTimeout(()=>$('inpNome').classList.remove('erro'), 400);
+    return;
+  }
+  VOLUNTARIO = n;
+  localStorage.setItem(K.nome, n);
+  iniciar();
+}
+$('inpNome').addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
+
+function iniciar(){
+  $('entrada').style.display = 'none';
+  $('app').classList.add('on');
+  $('hdrNome').textContent = VOLUNTARIO;
+  $('hdrData').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+  montarTabs();
+  montarGrade();
+  montarPgtos();
+  montarPop();
+  render();
+}
+
+/* ---------- CAIXA ---------- */
+function montarTabs(){
+  $('tabsCat').innerHTML = CATEGORIAS.map(c =>
+    `<button class="tab${c===catAtual?' on':''}" onclick="trocarCat('${c}')">${c}</button>`).join('');
+}
+function trocarCat(c){ catAtual = c; montarTabs(); montarGrade(); }
+
+function montarGrade(){
+  $('grade').innerHTML = PRODUTOS.filter(p => p.cat === catAtual).map(p => {
+    const item = carrinho.find(c => c.id === p.id);
+    return `<button class="prod${item?' tem':''}" data-id="${p.id}" onclick="add('${p.id}')">
+      <span class="badge">${item ? item.qtd : ''}</span>
+      <div class="n">${p.nome}</div>
+      <div class="p">${R(p.preco)}</div>
+    </button>`;
+  }).join('');
+}
+function add(id){
+  const p = PRODUTOS.find(x => x.id === id);
+  const item = carrinho.find(c => c.id === id);
+  if(item) item.qtd++;
+  else carrinho.push({id, nome:p.nome, preco:p.preco, custo:p.custo, qtd:1});
+  vibrar(12);
+  montarGrade();
+  renderBarra();
+}
+function mudarQtd(id, d){
+  const i = carrinho.findIndex(c => c.id === id);
+  if(i < 0) return;
+  carrinho[i].qtd += d;
+  if(carrinho[i].qtd <= 0) carrinho.splice(i,1);
+  montarGrade(); renderBarra(); renderCarrinhoFolha();
+  if(!carrinho.length) fecharFolha('fFinalizar');
+}
+function limparCarrinho(){ carrinho = []; montarGrade(); renderBarra(); }
+
+function totalCarrinho(){ return carrinho.reduce((s,c) => s + c.preco*c.qtd, 0); }
+function renderBarra(){
+  const qtd = carrinho.reduce((s,c) => s + c.qtd, 0);
+  $('barra').classList.toggle('on', qtd > 0);
+  $('bQtd').textContent = qtd;
+  $('bTot').textContent = R(totalCarrinho());
+}
+
+/* ---------- FINALIZAR ---------- */
+function montarPgtos(){
+  $('pgtos').innerHTML = PAGAMENTOS.map(p =>
+    `<button class="pg${p===pgtoAtual?' on':''}" data-p="${p}" onclick="setPgto('${p}')">${p}</button>`).join('');
+}
+function setPgto(p){ pgtoAtual = p; montarPgtos(); }
+
+function renderCarrinhoFolha(){
+  $('carrLista').innerHTML = carrinho.map(c => `
+    <div class="lc">
+      <div class="lcn">${c.nome}<small>${R(c.preco)} cada</small></div>
+      <div class="qc">
+        <button class="qb" onclick="mudarQtd('${c.id}',-1)">−</button>
+        <span class="qn">${c.qtd}</span>
+        <button class="qb" onclick="mudarQtd('${c.id}',1)">+</button>
+      </div>
+      <div class="lcv">${R(c.preco*c.qtd)}</div>
+    </div>`).join('');
+  $('btnConfirmar').textContent = 'Confirmar ' + R(totalCarrinho());
+}
+function abrirFinalizar(){
+  if(!carrinho.length) return;
+  renderCarrinhoFolha();
+  $('fFinalizar').classList.add('on');
+  setTimeout(()=>$('inpCliente').focus(), 260);
+}
+function fecharFolha(id){ $(id).classList.remove('on'); }
+
+function confirmarVenda(){
+  const inp = $('inpCliente');
+  const cliente = inp.value.trim();
+  if(!cliente){
+    inp.classList.add('erro'); inp.focus();
+    toast('Escreva o nome de quem está pagando');
+    setTimeout(()=>inp.classList.remove('erro'), 2000);
+    return;
+  }
+  /* id = número do pedido, repetido nos itens da mesma compra (agrupa o cupom).
+     itemId = identificação da linha, para excluir a certa. Mesmo formato do
+     sistema do computador, para o arquivo de dados importar sem conversão. */
+  const id = 'V-' + Date.now();
+  const data = dataHoje(), hora = horaAgora();
+  carrinho.forEach((c,i) => {
+    VENDAS.push({
+      id, itemId:id+'-'+i, data, hora, cliente,
+      pid:c.id, produto:c.nome, qtd:c.qtd,
+      total:+(c.preco*c.qtd).toFixed(2), pgto:pgtoAtual, status:'Pago',
+      lucro:+((c.preco-c.custo)*c.qtd).toFixed(2),
+      operador:VOLUNTARIO
+    });
+  });
+  const t = totalCarrinho();
+  salvar();
+  limparCarrinho();
+  inp.value = '';
+  fecharFolha('fFinalizar');
+  vibrar([18,60,18]);
+  toast('✓ ' + R(t) + ' — ' + cliente);
+  render();
+}
+
+/* ---------- VENDAS ---------- */
+/* Ordena pelo instante do pedido, que está dentro do próprio id ('V-<timestamp>').
+   Ordenar pela hora escrita empata quando várias vendas caem no mesmo minuto —
+   e um domingo cheio empata o tempo todo. */
+function pedidosDoDia(dia, cronologica){
+  const d = dia || dataHoje();
+  const mapa = new Map();
+  VENDAS.filter(v => v.data === d).forEach(v => {
+    if(!mapa.has(v.id)) mapa.set(v.id, {id:v.id, ts:Number(String(v.id).replace('V-','')) || 0, hora:v.hora, cliente:v.cliente, pgto:v.pgto, itens:[], total:0, lucro:0});
+    const p = mapa.get(v.id);
+    p.itens.push(v);
+    p.total += v.total;
+    p.lucro += (v.lucro || 0);
+  });
+  const lista = [...mapa.values()].sort((a,b) => a.ts - b.ts);
+  lista.forEach((p,i) => p.n = i + 1);   // pedido 1, 2, 3... do domingo
+  return cronologica ? lista : lista.reverse();
+}
+function render(){
+  const peds = pedidosDoDia();
+  const total  = peds.reduce((s,p) => s + p.total, 0);
+  $('kTotal').textContent  = R(total);
+  $('kQtd').textContent    = peds.length;
+  $('kTicket').textContent = R(peds.length ? total/peds.length : 0);
+
+  $('listaVendas').innerHTML = peds.length ? peds.map(p => `
+    <div class="card cupom">
+      <div class="top">
+        <div class="cli">${p.cliente}<small>${p.hora || '—'} · pedido ${p.n}</small></div>
+        <div class="vl">${R(p.total)}</div>
+      </div>
+      <div class="itens">${p.itens.map(i => `${i.qtd}× ${i.produto}`).join('<br>')}</div>
+      <div class="pe"><span class="pill">${p.pgto}</span><button class="del" onclick="excluir('${p.id}')">Excluir</button></div>
+    </div>`).join('')
+    : `<div class="vazio"><span class="em">☕</span><p>Nenhuma venda registrada hoje.<br>Toque em <b>Caixa</b> para começar.</p></div>`;
+
+  montarFechar();
+}
+function excluir(id){
+  if(!confirm('Excluir esta venda?')) return;
+  VENDAS = VENDAS.filter(v => v.id !== id);
+  salvar(); render();
+  toast('Venda excluída');
+}
+
+/* ---------- FECHAR O DOMINGO ---------- */
+function montarFechar(){
+  const dia = dataHoje();
+  const peds = pedidosDoDia(dia);
+  const total = peds.reduce((s,p) => s + p.total, 0);
+  const lucro = peds.reduce((s,p) => s + p.lucro, 0);
+  const porPgto = {};
+  PAGAMENTOS.forEach(p => porPgto[p] = 0);
+  VENDAS.filter(v => v.data === dia).forEach(v => { porPgto[v.pgto] = (porPgto[v.pgto]||0) + v.total; });
+
+  $('fecharCorpo').innerHTML = `
+    <div class="kpis">
+      <div class="kpi destaque"><div class="r">${dataBR(dia)}</div><div class="v">${R(total)}</div></div>
+      <div class="kpi"><div class="r">Vendas</div><div class="v">${peds.length}</div></div>
+      <div class="kpi"><div class="r">Lucro</div><div class="v">${R(lucro)}</div></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:8px">Por forma de pagamento</div>
+      ${PAGAMENTOS.map(p => `<div class="hora" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1.5px solid var(--linha)">
+        <span>${p}</span><b style="color:var(--azul)">${R(porPgto[p])}</b></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding:11px 0 0;font-weight:700;font-size:1.05rem">
+        <span>Total</span><span style="color:var(--azul)">${R(total)}</span></div>
+    </div>
+    ${peds.length ? '' : '<div class="alerta"><b>Ainda não há vendas hoje.</b>O relatório só faz sentido depois de registrar as vendas do domingo.</div>'}
+    <button class="btn" onclick="gerarRelatorio()" ${peds.length ? '' : 'disabled'}>Gerar relatório e enviar</button>
+    <button class="btn sec" onclick="baixarDados()" ${peds.length ? '' : 'disabled'}>Baixar arquivo de dados</button>
+    <button class="btn cinza" onclick="limparDia()">Limpar as vendas deste celular</button>
+    <div class="rodape-nota">
+      O relatório em PDF é o controle oficial: envie no grupo dos voluntários.<br>
+      O arquivo de dados é para o André lançar no sistema do computador.<br><br>
+      Cardápio versão ${VERSAO_CATALOGO} · Pix da igreja: ${PIX_IGREJA}
+    </div>`;
+}
+
+function limparDia(){
+  const dia = dataHoje();
+  if(!confirm('Isto apaga as vendas de hoje deste celular. Só faça depois de enviar o relatório no grupo. Continuar?')) return;
+  VENDAS = VENDAS.filter(v => v.data !== dia);
+  salvar(); render();
+  toast('Vendas de hoje apagadas');
+}
+
+/* ---------- ARQUIVO DE DADOS ---------- */
+function baixarDados(){
+  const dia = dataHoje();
+  const pacote = {
+    versao: '3.0-app',
+    origem: 'app-celular',
+    exportadoEm: new Date().toISOString(),
+    exportadoPor: VOLUNTARIO,
+    unidade: 'Big Coffee',
+    data: dia,
+    VENDAS: VENDAS.filter(v => v.data === dia)
+  };
+  const blob = new Blob([JSON.stringify(pacote, null, 2)], {type:'application/json'});
+  baixarOuCompartilhar(blob, `bigcoffee_vendas_${dia}.json`, 'Vendas Big Coffee ' + dataBR(dia));
+}
+
+/* ---------- RELATÓRIO EM PDF ---------- */
+function gerarRelatorio(){
+  const dia  = dataHoje();
+  const peds = pedidosDoDia(dia, true);   // ordem em que aconteceram
+  if(!peds.length){ toast('Nenhuma venda para relatar'); return; }
+
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const W = 210, ML = 14, MR = 14, UTIL = W - ML - MR;
+  const AZUL = [13,77,237], CINZA = [107,119,148], TINTA = [15,27,61];
+
+  const total  = peds.reduce((s,p) => s + p.total, 0);
+  const lucro  = peds.reduce((s,p) => s + p.lucro, 0);
+  const porPgto = {};
+  PAGAMENTOS.forEach(p => porPgto[p] = 0);
+  VENDAS.filter(v => v.data === dia).forEach(v => { porPgto[v.pgto] = (porPgto[v.pgto]||0) + v.total; });
+  const porProduto = {};
+  VENDAS.filter(v => v.data === dia).forEach(v => {
+    if(!porProduto[v.produto]) porProduto[v.produto] = {qtd:0, valor:0};
+    porProduto[v.produto].qtd   += v.qtd;
+    porProduto[v.produto].valor += v.total;
+  });
+
+  /* ---- capa ---- */
+  doc.setFillColor(...AZUL);
+  doc.rect(0, 0, W, 46, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold'); doc.setFontSize(26);
+  doc.text('bigcoffee.', ML, 21);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
+  doc.text('Relatório do domingo', ML, 29.5);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text(dataExtenso(dia).toUpperCase(), ML, 38);
+  doc.setFontSize(24);
+  doc.text(R(total), W - MR, 26, {align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  doc.text(peds.length + ' vendas', W - MR, 33, {align:'right'});
+
+  let y = 58;
+
+  /* ---- folha de conferência ---- */
+  doc.setTextColor(...TINTA);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text('Conferência do caixa', ML, y); y += 3;
+  doc.setDrawColor(...AZUL); doc.setLineWidth(0.8);
+  doc.line(ML, y, ML + 42, y); y += 8;
+
+  const colL = ML, colR = ML + UTIL/2 + 4, larg = UTIL/2 - 4;
+  let yL = y, yR = y;
+
+  doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+  doc.text('POR FORMA DE PAGAMENTO', colL, yL); yL += 5.5;
+  doc.setFont('helvetica','normal'); doc.setTextColor(...TINTA); doc.setFontSize(10);
+  PAGAMENTOS.forEach(p => {
+    doc.text(p, colL, yL);
+    doc.setFont('helvetica','bold');
+    doc.text(R(porPgto[p]), colL + larg, yL, {align:'right'});
+    doc.setFont('helvetica','normal');
+    doc.setDrawColor(225,231,244); doc.setLineWidth(0.2);
+    doc.line(colL, yL + 1.8, colL + larg, yL + 1.8);
+    yL += 7;
+  });
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('Total recebido', colL, yL + 2);
+  doc.setTextColor(...AZUL);
+  doc.text(R(total), colL + larg, yL + 2, {align:'right'});
+  yL += 10;
+
+  doc.setTextColor(...CINZA); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+  doc.text('RESUMO DO DIA', colR, yR); yR += 5.5;
+  doc.setFont('helvetica','normal'); doc.setTextColor(...TINTA); doc.setFontSize(10);
+  [['Vendas', String(peds.length)],
+   ['Ticket médio', R(total/peds.length)],
+   ['Lucro apurado', R(lucro)],
+   ['Margem', (total ? (lucro/total*100).toFixed(1) : '0') + '%']
+  ].forEach(([k,v]) => {
+    doc.text(k, colR, yR);
+    doc.setFont('helvetica','bold');
+    doc.text(v, colR + larg, yR, {align:'right'});
+    doc.setFont('helvetica','normal');
+    doc.setDrawColor(225,231,244); doc.setLineWidth(0.2);
+    doc.line(colR, yR + 1.8, colR + larg, yR + 1.8);
+    yR += 7;
+  });
+
+  y = Math.max(yL, yR) + 6;
+
+  /* ---- o que saiu ---- */
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...TINTA);
+  doc.text('O que saiu', ML, y); y += 3;
+  doc.setDrawColor(...AZUL); doc.setLineWidth(0.8);
+  doc.line(ML, y, ML + 25, y); y += 7;
+
+  const prods = Object.entries(porProduto).sort((a,b) => b[1].valor - a[1].valor);
+  doc.setFontSize(9.5);
+  prods.forEach(([nome, d]) => {
+    if(y > 268){ doc.addPage(); y = 22; }
+    doc.setFont('helvetica','normal'); doc.setTextColor(...TINTA);
+    doc.text(d.qtd + '×  ' + nome, ML, y);
+    doc.setFont('helvetica','bold');
+    doc.text(R(d.valor), W - MR, y, {align:'right'});
+    doc.setDrawColor(230,235,246); doc.setLineWidth(0.2);
+    doc.line(ML, y + 1.8, W - MR, y + 1.8);
+    y += 6.4;
+  });
+
+  /* ---- cupons ---- */
+  doc.addPage();
+  y = 20;
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...TINTA);
+  doc.text('Detalhe das vendas', ML, y); y += 3;
+  doc.setDrawColor(...AZUL); doc.setLineWidth(0.8);
+  doc.line(ML, y, ML + 40, y); y += 8;
+
+  const cw = (UTIL - 6) / 2;
+  let col = 0, yCol = [y, y];
+
+  peds.forEach(p => {
+    const alt = 15 + p.itens.length * 4.6;
+    if(yCol[col] + alt > 278){
+      col++;
+      if(col > 1){ doc.addPage(); y = 20; yCol = [y, y]; col = 0; }
+    }
+    const x  = ML + col * (cw + 6);
+    let   yy = yCol[col];
+
+    doc.setDrawColor(200,210,232); doc.setLineWidth(0.3);
+    doc.setLineDashPattern([1,1], 0);
+    doc.roundedRect(x, yy, cw, alt, 2, 2);
+    doc.setLineDashPattern([], 0);
+
+    yy += 5.5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...TINTA);
+    doc.text(String(p.cliente).slice(0,26), x + 3, yy);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...CINZA);
+    doc.text((p.hora || '') + ' · ' + p.pgto, x + cw - 3, yy, {align:'right'});
+    yy += 4.4;
+
+    doc.setFontSize(8); doc.setTextColor(...TINTA);
+    p.itens.forEach(i => {
+      doc.text(i.qtd + '× ' + String(i.produto).slice(0,22), x + 3, yy);
+      doc.text(R(i.total), x + cw - 3, yy, {align:'right'});
+      yy += 4.6;
+    });
+    doc.setDrawColor(200,210,232); doc.setLineWidth(0.2);
+    doc.line(x + 3, yy - 2, x + cw - 3, yy - 2);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...AZUL);
+    doc.text(R(p.total), x + cw - 3, yy + 2.5, {align:'right'});
+    doc.setTextColor(...CINZA); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('#' + p.n, x + 3, yy + 2.5);
+
+    yCol[col] = yy + 9;
+    col = col === 0 ? 1 : 0;
+  });
+
+  /* ---- rodapé em todas as páginas ---- */
+  const tot = doc.internal.getNumberOfPages();
+  for(let i = 1; i <= tot; i++){
+    doc.setPage(i);
+    doc.setDrawColor(225,231,244); doc.setLineWidth(0.3);
+    doc.line(ML, 286, W - MR, 286);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...CINZA);
+    doc.text('Big Coffee · Igreja Big Home · Fechado por ' + VOLUNTARIO + ' · Pix: ' + PIX_IGREJA, ML, 290.5);
+    doc.text(i + '/' + tot, W - MR, 290.5, {align:'right'});
+  }
+
+  const nome = 'Big Coffee ' + dataBR(dia).replace(/\//g,'-') + '.pdf';
+  baixarOuCompartilhar(doc.output('blob'), nome, 'Relatório Big Coffee — ' + dataBR(dia) + '\nTotal: ' + R(total) + ' · ' + peds.length + ' vendas\nFechado por ' + VOLUNTARIO);
+}
+
+/* Compartilhar abre o WhatsApp direto no celular.
+   Onde a API não existe (computador), cai no download. */
+async function baixarOuCompartilhar(blob, nome, texto){
+  const arq = new File([blob], nome, {type:blob.type});
+  if(navigator.canShare && navigator.canShare({files:[arq]})){
+    try{
+      await navigator.share({files:[arq], title:'Big Coffee', text:texto});
+      toast('✓ Enviado');
+      return;
+    }catch(e){
+      if(e && e.name === 'AbortError') return;   // usuário cancelou
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  toast('✓ Arquivo baixado');
+}
+
+/* ---------- POP ---------- */
+const POP = [
+  {em:'🕗', t:'Horários do domingo', html:`
+    <div class="hora"><span>Equipe chega</span><b>08h15</b></div>
+    <div class="hora"><span>Abre o Big Coffee</span><b>09h20</b></div>
+    <div class="hora"><span>Culto começa</span><b>10h00</b></div>
+    <div class="hora" style="border:none"><span>Reabre após o culto</span><b>~30 min</b></div>
+    <h4>Pausa</h4>
+    <p style="margin:0">No fim do louvor o Big Coffee fecha e <b>todos vão assistir ao culto</b>. Reabre cerca de 30 minutos depois, se ainda houver produto.</p>`},
+
+  {em:'👥', t:'As quatro funções', html:`
+    <h4>Caixa</h4><p style="margin:0 0 10px">Registra todas as vendas no app. Escreve sempre o nome de quem está pagando. No fim, gera o relatório e envia no grupo.</p>
+    <h4>Barista</h4><p style="margin:0 0 10px">Prepara as bebidas. Função especializada: quem é barista faz só barista no domingo.</p>
+    <h4>Atendimento</h4><p style="margin:0 0 10px">Entrega e acolhe quem chega. Contato visual, sorriso, chamar pelo nome quando conhecer.</p>
+    <h4>Gerente do dia</h4><p style="margin:0">Suporte do dia. Garante que o setor funcione e nada falte. Acompanha o voluntário novo no primeiro domingo.</p>`},
+
+  {em:'☕', t:'Como fazer as bebidas', html:`
+    <h4>Espresso</h4>
+    <ol><li>Café no dosador</li><li>Dosador na máquina</li><li>Tirar o espresso</li></ol>
+    <h4>Latte</h4>
+    <ol><li>1 dose de espresso</li><li>Um pouco de leite espumado por cima</li></ol>
+    <h4>Mocha Doce de Leite (quente)</h4>
+    <ol><li>1 colher cheia de doce de leite passada na parte de baixo do copo</li><li>Meio medidor de leite</li><li>Vaporizar na máquina até espumar</li><li>Leite no copo</li><li>Tirar 1 espresso e colocar por cima</li></ol>
+    <h4>Mocha Doce de Leite Gelado</h4>
+    <ol><li>Doce de leite no fundo do copo, do mesmo jeito</li><li>Leite <b>não é aquecido</b>, só espumado</li><li>1 dose de espresso por cima</li></ol>`},
+
+  {em:'🧼', t:'Higiene e atendimento', html:`
+    <h4>Higiene</h4>
+    <ul><li>Mãos lavadas e álcool em gel</li><li>Cabelo preso</li><li>Pegador, guardanapo ou luva para tocar alimento pronto</li><li>Quem mexe em dinheiro não mexe em comida</li><li>Bancadas higienizadas, alimentos cobertos</li><li>Conferir validade antes de servir</li></ul>
+    <h4>Atendimento</h4>
+    <ul><li>Contato visual e sorriso</li><li>Chamar pelo nome quando conhecer</li><li>Paciência, sem pressa</li><li>Todos acolhem — é ministério, não balcão</li></ul>
+    <h4>Roupa</h4>
+    <p style="margin:0">Sem uniforme e sem avental. O time combina uma paleta de cores entre si a cada domingo.</p>`},
+
+  {em:'✅', t:'Checklist: abertura (08h15)', chk:[
+    'Montar a máquina de café','Limpar os utensílios e a bancada','Assar os salgados',
+    'Preparar os molhos','Montar os mistos quentes','Abrir o app do caixa','Conferir o estoque do dia']},
+
+  {em:'🔒', t:'Checklist: encerramento', chk:[
+    'Gerar o relatório no app','Enviar o relatório no grupo','Limpar os utensílios',
+    'Organizar e guardar tudo','Conferir o estoque que sobrou','Fotografar as sobras e postar no grupo']},
+
+  {em:'💰', t:'Dinheiro e reembolso', html:`
+    <h4>Recebimento</h4>
+    <p style="margin:0 0 10px">Pix cai direto na conta da igreja: <b>${PIX_IGREJA}</b>. Débito, crédito e dinheiro entram normalmente. <b>Não há fundo de troco.</b></p>
+    <h4>Quem paga</h4>
+    <p style="margin:0 0 10px">Todos pagam, inclusive pastores e diáconos.</p>
+    <h4>Compras</h4>
+    <p style="margin:0 0 10px">As compras são feitas pelo responsável definido pela liderança, onde for melhor para o item e o preço. <b>Toda compra precisa de nota fiscal</b> entregue à Lais. Sem nota, não há reembolso.</p>
+    <h4>Para onde vai o lucro</h4>
+    <p style="margin:0">Metade para os missionários e metade para o fundo interno do Big Coffee.</p>`},
+
+  {em:'📣', t:'Quem avisa o quê', html:`
+    <ul>
+      <li><b>Escala</b> — Kethy ou André publicam no grupo, todo fim de mês</li>
+      <li><b>Falta</b> — avise a líder ou o sublíder no privado, com antecedência</li>
+      <li><b>Troca</b> — combine com outro voluntário e avise no grupo</li>
+      <li><b>Relatório do domingo</b> — quem está no caixa envia no grupo</li>
+      <li><b>Sobras</b> — foto no grupo</li>
+      <li><b>Lista de compras</b> — voluntário do mês envia ao André</li>
+    </ul>
+    <p style="margin:10px 0 0">Liderança: <b>Kethy Monteiro</b> (líder), <b>André Martins</b> (sublíder), <b>Lais Chada</b> (financeiro).</p>`}
+];
+
+function montarPop(){
+  $('popWrap').innerHTML = POP.map((s,i) => {
+    let corpo;
+    if(s.chk){
+      corpo = s.chk.map((t,j) => {
+        const key = 'c' + i + '_' + j;
+        const on = CHECKS[key] ? ' ok' : '';
+        return `<div class="chk${on}" id="${key}" onclick="marcar('${key}')"><div class="bx">✓</div><span>${t}</span></div>`;
+      }).join('') + `<div style="font-size:.76rem;color:var(--cinza);margin-top:12px;line-height:1.5">As marcações valem para hoje, só neste celular.</div>`;
+    } else corpo = s.html;
+    return `<div class="acc" id="acc${i}">
+      <button onclick="toggleAcc(${i})"><span class="em">${s.em}</span>${s.t}
+        <svg class="ar" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="corpo">${corpo}</div>
+    </div>`;
+  }).join('');
+}
+function toggleAcc(i){ $('acc' + i).classList.toggle('on'); }
+function marcar(key){
+  CHECKS[key] = !CHECKS[key];
+  $(key).classList.toggle('ok', !!CHECKS[key]);
+  salvar(); vibrar(10);
+}
+
+/* ---------- NAVEGAÇÃO ---------- */
+function irPara(v){
+  document.querySelectorAll('.view').forEach(s => s.classList.remove('on'));
+  $('v-' + v).classList.add('on');
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelector('main').scrollTop = 0;
+  if(v === 'vendas' || v === 'fechar') render();
+}
+
+/* ---------- ARRANQUE ---------- */
+if(VOLUNTARIO){ $('inpNome').value = VOLUNTARIO; iniciar(); }
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
