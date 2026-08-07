@@ -170,6 +170,15 @@ nav button.on{color:var(--azul)}
 .vazio .em{font-size:2.6rem;margin-bottom:10px;display:block}
 .vazio p{font-size:.92rem;margin:0;line-height:1.5}
 
+/* ---------- DIVISÃO DO LUCRO ---------- */
+.divisao{background:var(--azul-claro);border-color:#C7D9FC}
+.divisao .dt{font-weight:600;margin-bottom:11px;font-size:.98rem}
+.divisao .dl{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.divisao .dl>div{background:#fff;border-radius:13px;padding:11px 12px}
+.divisao .dl span{display:block;font-size:.76rem;color:var(--cinza);font-weight:500;line-height:1.3}
+.divisao .dl b{display:block;font-size:1.2rem;color:var(--azul);margin-top:4px}
+.divisao .dl small{display:block;font-size:.7rem;color:var(--cinza);margin-top:1px}
+
 /* ---------- KPIs ---------- */
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
 .kpi{background:#fff;border:2.5px solid var(--linha);border-radius:16px;padding:13px}
@@ -576,6 +585,13 @@ function montarFechar(){
       <div class="kpi"><div class="r">Vendas</div><div class="v">${peds.length}</div></div>
       <div class="kpi"><div class="r">Lucro</div><div class="v">${R(lucro)}</div></div>
     </div>
+    <div class="card divisao">
+      <div class="dt">Divisão do lucro</div>
+      <div class="dl">
+        <div><span>Missionários</span><b>${R(lucro/2)}</b><small>50%</small></div>
+        <div><span>Fundo Big Coffee</span><b>${R(lucro/2)}</b><small>50%</small></div>
+      </div>
+    </div>
     <div class="card">
       <div style="font-weight:600;margin-bottom:8px">Por forma de pagamento</div>
       ${PAGAMENTOS.map(p => `<div class="hora" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1.5px solid var(--linha)">
@@ -656,7 +672,28 @@ function gerarRelatorio(){
   doc.setFont('helvetica','normal'); doc.setFontSize(8);
   doc.text(peds.length + ' vendas', W - MR, 33, {align:'right'});
 
-  let y = 58;
+  let y = 56;
+
+  /* ---- divisão do lucro: 50% missionários / 50% fundo interno
+         (decisão fechada com a Pastora Karina) ---- */
+  const metade = lucro / 2;
+  const cA = ML + 6, cB = ML + UTIL/3 + 4, cC = ML + UTIL*2/3 + 2;
+
+  doc.setFillColor(232, 239, 254);
+  doc.roundedRect(ML, y, UTIL, 27, 2.5, 2.5, 'F');
+
+  doc.setTextColor(...CINZA); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+  doc.text('MISSIONÁRIOS · 50%',     cA, y + 8);
+  doc.text('FUNDO BIG COFFEE · 50%', cB, y + 8);
+  doc.text('LUCRO DO DIA',           cC, y + 8);
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(...AZUL);
+  doc.text(R(metade), cA, y + 19);
+  doc.text(R(metade), cB, y + 19);
+  doc.setTextColor(...TINTA);
+  doc.text(R(lucro),  cC, y + 19);
+
+  y += 37;
 
   /* ---- folha de conferência ---- */
   doc.setTextColor(...TINTA);
@@ -703,32 +740,13 @@ function gerarRelatorio(){
     yR += 7;
   });
 
-  y = Math.max(yL, yR) + 6;
+  y = Math.max(yL, yR) + 8;
 
-  /* ---- o que saiu ---- */
+  /* ---- quem comprou, item a item ----
+     Vem ANTES do resumo por produto de propósito: é o nome de quem pagou
+     que se confere no grupo, então tem que aparecer na primeira página. */
   doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...TINTA);
-  doc.text('O que saiu', ML, y); y += 3;
-  doc.setDrawColor(...AZUL); doc.setLineWidth(0.8);
-  doc.line(ML, y, ML + 25, y); y += 7;
-
-  const prods = Object.entries(porProduto).sort((a,b) => b[1].valor - a[1].valor);
-  doc.setFontSize(9.5);
-  prods.forEach(([nome, d]) => {
-    if(y > 268){ doc.addPage(); y = 22; }
-    doc.setFont('helvetica','normal'); doc.setTextColor(...TINTA);
-    doc.text(d.qtd + '×  ' + nome, ML, y);
-    doc.setFont('helvetica','bold');
-    doc.text(R(d.valor), W - MR, y, {align:'right'});
-    doc.setDrawColor(230,235,246); doc.setLineWidth(0.2);
-    doc.line(ML, y + 1.8, W - MR, y + 1.8);
-    y += 6.4;
-  });
-
-  /* ---- cupons ---- */
-  doc.addPage();
-  y = 20;
-  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...TINTA);
-  doc.text('Detalhe das vendas', ML, y); y += 3;
+  doc.text('Quem comprou', ML, y); y += 3;
   doc.setDrawColor(...AZUL); doc.setLineWidth(0.8);
   doc.line(ML, y, ML + 40, y); y += 8;
 
@@ -771,6 +789,28 @@ function gerarRelatorio(){
 
     yCol[col] = yy + 9;
     col = col === 0 ? 1 : 0;
+  });
+
+  /* ---- o que saiu (resumo por produto) ---- */
+  y = Math.max(yCol[0], yCol[1]) + 6;
+  const prods = Object.entries(porProduto).sort((a,b) => b[1].valor - a[1].valor);
+  if(y + 12 + prods.length * 6.4 > 280){ doc.addPage(); y = 20; }
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...TINTA);
+  doc.text('O que saiu', ML, y); y += 3;
+  doc.setDrawColor(...AZUL); doc.setLineWidth(0.8);
+  doc.line(ML, y, ML + 25, y); y += 7;
+
+  doc.setFontSize(9.5);
+  prods.forEach(([nome, d]) => {
+    if(y > 276){ doc.addPage(); y = 22; }
+    doc.setFont('helvetica','normal'); doc.setTextColor(...TINTA);
+    doc.text(d.qtd + '×  ' + nome, ML, y);
+    doc.setFont('helvetica','bold');
+    doc.text(R(d.valor), W - MR, y, {align:'right'});
+    doc.setDrawColor(230,235,246); doc.setLineWidth(0.2);
+    doc.line(ML, y + 1.8, W - MR, y + 1.8);
+    y += 6.4;
   });
 
   /* ---- rodapé em todas as páginas ---- */
