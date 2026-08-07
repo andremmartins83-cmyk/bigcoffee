@@ -2,7 +2,7 @@
    Guarda o app no celular para funcionar sem internet no domingo.
    Trocar CACHE ao publicar versão nova força todo mundo a baixar o app atualizado. */
 
-const CACHE = 'bigcoffee-v2-2026-08-07';
+const CACHE = 'bigcoffee-v3-2026-08-07';
 
 const LOCAIS = [
   './',
