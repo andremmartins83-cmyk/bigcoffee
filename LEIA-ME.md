@@ -6,6 +6,9 @@ relatório no grupo. Funciona sem internet depois da primeira abertura.
 ## O que ele faz
 
 - **Caixa** — toca no produto, escreve o nome de quem paga, escolhe a forma de pagamento.
+  **Segurar o produto por 1 segundo marca que ele acabou**: o card fica cinza, riscado,
+  com o selo ACABOU, e para de aceitar venda. Segurar de novo devolve ao cardápio.
+  A marcação vale só para o dia — no domingo seguinte o cardápio volta inteiro.
 - **Vendas** — lista do dia, com total, ticket médio e opção de excluir.
 - **Como fazer** — receitas das bebidas, horários, funções, higiene e os dois checklists.
 - **Fechar** — gera o relatório em PDF e abre o compartilhar do celular direto no WhatsApp.
@@ -41,6 +44,11 @@ Para **atualizar o cardápio ou um preço**:
    **Sem trocar o CACHE, os celulares continuam com a versão antiga.**
 4. Subir os arquivos alterados no GitHub. Os celulares pegam na próxima abertura.
 
+O arquivo `bighome.png` é o ícone oficial da Big Home (do pack **PACK NOVO LOGOTIPO
+BIGHOME • 2023**). Ele aparece no cabeçalho do app, na tela de entrada e no canto
+superior do relatório em PDF. Está no precache do `sw.js`: se trocar o arquivo,
+trocar o `CACHE` junto.
+
 Os preços e custos saem do backup do sistema. Para recalcular os custos, use as
 fichas técnicas do arquivo `bigcoffee_backup_AAAA-MM-DD.json`.
 
@@ -55,6 +63,7 @@ Depois disso abre como aplicativo, com ícone próprio e sem barra de endereço.
 
 ## Onde ficam os dados
 
-No `localStorage` do próprio celular, em três chaves: `bcapp_voluntario`,
-`bcapp_vendas` e `bcapp_checklists`. Limpar os dados do navegador apaga tudo —
+No `localStorage` do próprio celular, em quatro chaves: `bcapp_voluntario`,
+`bcapp_vendas`, `bcapp_checklists` e `bcapp_esgotados` (esta guarda a data junto,
+para os produtos marcados como acabados sumirem sozinhos na virada do dia). Limpar os dados do navegador apaga tudo —
 por isso o relatório do domingo tem que ser enviado no grupo no mesmo dia.

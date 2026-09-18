@@ -95,6 +95,19 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
   display:none;align-items:center;justify-content:center;border:3px solid var(--fundo);padding:0 6px;
 }
 .prod.tem .badge{display:flex}
+.prod.off{opacity:.5;border-color:var(--linha);background:#EDF0F6}
+.prod.off .n{text-decoration:line-through}
+.prod.off .p{color:var(--cinza)}
+.prod .esg{
+  position:absolute;bottom:14px;right:9px;display:none;
+  font-size:.58rem;font-weight:700;letter-spacing:.06em;
+  background:var(--cinza);color:#fff;border-radius:999px;padding:3px 8px;
+}
+.prod.off .esg{display:block}
+.marca-wrap{display:flex;align-items:center;gap:9px}
+.selo{width:26px;height:26px;border-radius:7px;flex-shrink:0}
+.igreja{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;font-size:.78rem;opacity:.92}
+.igreja img{width:24px;height:24px;border-radius:6px}
 
 /* ---------- BARRA DO CARRINHO ---------- */
 #barra{
@@ -230,12 +243,13 @@ h3.sec{font-size:1.35rem;margin:2px 0 12px}
   <input id="inpNome" type="text" placeholder="Seu nome" autocomplete="name" autocapitalize="words" enterkeyhint="go">
   <button class="ok" onclick="entrar()">Começar</button>
   <div class="nota">Seu nome fica gravado neste celular e assina o relatório que você enviar no grupo.</div>
+  <div class="igreja"><img src="bighome.png" alt="Big Home">Igreja Big Home · São Paulo</div>
 </div>
 
 <!-- ══════════ APP ══════════ -->
 <div id="app">
   <header>
-    <div class="marca chewy">bigcoffee.</div>
+    <div class="marca-wrap"><img class="selo" src="bighome.png" alt="Big Home"><div class="marca chewy">bigcoffee.</div></div>
     <div class="quem"><b id="hdrNome">—</b><span id="hdrData">—</span></div>
   </header>
 
@@ -320,7 +334,7 @@ h3.sec{font-size:1.35rem;margin:2px 0 12px}
    O controle oficial é o relatório em PDF enviado ao grupo.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSAO_CATALOGO = '2026-08-07';
+const VERSAO_CATALOGO = '2026-09-18';
 
 /* Cardápio embutido, tirado do backup do sistema de 02/08/2026 — só os
    produtos marcados como disponíveis. O custo vem das fichas técnicas e
@@ -347,11 +361,26 @@ const CATEGORIAS = ['Bebidas','Comidas','Bomboniere'];
 const PAGAMENTOS = ['Pix','Débito','Crédito','Dinheiro'];
 const PIX_IGREJA = 'pixbighome@gmail.com';
 
+/* Selo oficial da Big Home em dataURL — o jsPDF só aceita imagem já carregada.
+   Se falhar, o relatório sai sem o selo em vez de quebrar. */
+let SELO_IGREJA = null;
+fetch('bighome.png')
+  .then(r => r.blob())
+  .then(b => { const fr = new FileReader(); fr.onload = () => SELO_IGREJA = fr.result; fr.readAsDataURL(b); })
+  .catch(() => {});
+
 /* ---------- ESTADO ---------- */
-const K = {nome:'bcapp_voluntario', vendas:'bcapp_vendas', chk:'bcapp_checklists'};
+const K = {nome:'bcapp_voluntario', vendas:'bcapp_vendas', chk:'bcapp_checklists', esg:'bcapp_esgotados'};
 let VOLUNTARIO = localStorage.getItem(K.nome) || '';
 let VENDAS   = JSON.parse(localStorage.getItem(K.vendas) || '[]');
 let CHECKS   = JSON.parse(localStorage.getItem(K.chk)    || '{}');
+/* produtos que acabaram — vale só para o dia; no domingo seguinte a lista volta limpa */
+let ESGOT = (() => {
+  try{
+    const o = JSON.parse(localStorage.getItem(K.esg) || '{}');
+    return o.dia === dataHoje() ? (o.ids || []) : [];
+  }catch(e){ return []; }
+})();
 let carrinho = [];
 let pgtoAtual = 'Pix';
 let catAtual  = 'Bebidas';
@@ -383,6 +412,7 @@ function dataExtenso(iso){
 function salvar(){
   localStorage.setItem(K.vendas, JSON.stringify(VENDAS));
   localStorage.setItem(K.chk,    JSON.stringify(CHECKS));
+  localStorage.setItem(K.esg,    JSON.stringify({dia: dataHoje(), ids: ESGOT}));
 }
 let toastTimer;
 function toast(msg){
@@ -429,14 +459,57 @@ function trocarCat(c){ catAtual = c; montarTabs(); montarGrade(); }
 function montarGrade(){
   $('grade').innerHTML = PRODUTOS.filter(p => p.cat === catAtual).map(p => {
     const item = carrinho.find(c => c.id === p.id);
-    return `<button class="prod${item?' tem':''}" data-id="${p.id}" onclick="add('${p.id}')">
+    const off  = ESGOT.includes(p.id);
+    return `<button class="prod${item?' tem':''}${off?' off':''}" data-id="${p.id}">
       <span class="badge">${item ? item.qtd : ''}</span>
+      <span class="esg">ACABOU</span>
       <div class="n">${p.nome}</div>
       <div class="p">${R(p.preco)}</div>
     </button>`;
   }).join('');
 }
+
+/* Toque curto vende. Segurar 0,7s marca que o produto acabou (e desmarca).
+   Rolar a tela com o dedo em cima do card cancela — senao o caixa marcaria
+   "acabou" sem querer no meio do atendimento. */
+function alternarEsgotado(id){
+  const p = PRODUTOS.find(x => x.id === id);
+  const i = ESGOT.indexOf(id);
+  if(i >= 0){
+    ESGOT.splice(i, 1);
+    toast(p.nome + ' voltou ao cardápio');
+  }else{
+    ESGOT.push(id);
+    const n = carrinho.findIndex(c => c.id === id);
+    if(n >= 0) carrinho.splice(n, 1);
+    toast(p.nome + ': acabou');
+  }
+  vibrar(40); salvar(); montarGrade(); renderBarra();
+}
+(function ligarGrade(){
+  const g = $('grade');
+  let timer = null, segurou = false, x0 = 0, y0 = 0;
+  const alvo = e => { const b = e.target.closest('.prod'); return b ? b.dataset.id : null; };
+  const soltar = () => { clearTimeout(timer); timer = null; };
+
+  g.addEventListener('pointerdown', e => {
+    const id = alvo(e); if(!id) return;
+    segurou = false; x0 = e.clientX; y0 = e.clientY;
+    timer = setTimeout(() => { segurou = true; alternarEsgotado(id); }, 700);
+  });
+  g.addEventListener('pointermove', e => {
+    if(timer && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) soltar();
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev => g.addEventListener(ev, soltar));
+  g.addEventListener('click', e => {
+    const id = alvo(e); if(!id) return;
+    if(segurou){ segurou = false; return; }
+    add(id);
+  });
+  g.addEventListener('contextmenu', e => e.preventDefault());
+})();
 function add(id){
+  if(ESGOT.includes(id)) return;
   const p = PRODUTOS.find(x => x.id === id);
   const item = carrinho.find(c => c.id === id);
   if(item) item.qtd++;
@@ -671,6 +744,9 @@ function gerarRelatorio(){
   doc.text(R(total), W - MR, 26, {align:'right'});
   doc.setFont('helvetica','normal'); doc.setFontSize(8);
   doc.text(peds.length + ' vendas', W - MR, 33, {align:'right'});
+  if(SELO_IGREJA){
+    try{ doc.addImage(SELO_IGREJA, 'PNG', W - MR - 9, 6, 9, 9, 'selo', 'FAST'); }catch(e){}
+  }
 
   let y = 56;
 
@@ -751,13 +827,24 @@ function gerarRelatorio(){
   doc.line(ML, y, ML + 40, y); y += 8;
 
   const cw = (UTIL - 6) / 2;
+  const FIM_UTIL = 274;          // ultima linha util antes do rodape (290,5)
   let col = 0, yCol = [y, y];
 
   peds.forEach(p => {
-    const alt = 15 + p.itens.length * 4.6;
-    if(yCol[col] + alt > 278){
-      col++;
-      if(col > 1){ doc.addPage(); y = 20; yCol = [y, y]; col = 0; }
+    /* nome inteiro em ate duas linhas: antes era cortado no caractere 26 */
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    const todas = doc.splitTextToSize(String(p.cliente || '—'), cw - 30);
+    const nome  = todas.slice(0, 2);
+    if(todas.length > 2) nome[1] = nome[1].slice(0, -1) + '…';
+
+    const alt = 15 + (nome.length - 1) * 4.2 + p.itens.length * 4.6;
+
+    /* cabe nesta coluna? tenta a outra; se nao couber em nenhuma, vira a pagina.
+       O codigo antigo pulava para a coluna 2 sem conferir e o card saia cortado. */
+    if(yCol[col] + alt > FIM_UTIL){
+      const outra = col === 0 ? 1 : 0;
+      if(yCol[outra] + alt <= FIM_UTIL){ col = outra; }
+      else { doc.addPage(); yCol = [20, 20]; col = 0; }
     }
     const x  = ML + col * (cw + 6);
     let   yy = yCol[col];
@@ -769,10 +856,10 @@ function gerarRelatorio(){
 
     yy += 5.5;
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...TINTA);
-    doc.text(String(p.cliente).slice(0,26), x + 3, yy);
+    nome.forEach((ln, k) => doc.text(ln, x + 3, yy + k * 4.2));
     doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...CINZA);
     doc.text((p.hora || '') + ' · ' + p.pgto, x + cw - 3, yy, {align:'right'});
-    yy += 4.4;
+    yy += 4.4 + (nome.length - 1) * 4.2;
 
     doc.setFontSize(8); doc.setTextColor(...TINTA);
     p.itens.forEach(i => {
