@@ -12,10 +12,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* Creato Display — a mesma tipografia do app de escalas da Big Home.
+   Licença SIL Open Font, pode ser distribuída junto com o app. Vem do próprio
+   repositório, então o app abre igual sem internet no porão da igreja. */
+@font-face{font-family:'Creato Display';src:url('CreatoDisplay-Regular.otf') format('opentype');font-weight:400;font-display:swap}
+@font-face{font-family:'Creato Display';src:url('CreatoDisplay-Medium.otf')  format('opentype');font-weight:500;font-display:swap}
+@font-face{font-family:'Creato Display';src:url('CreatoDisplay-Black.otf')   format('opentype');font-weight:900;font-display:swap}
 :root{
   --azul:#0D4DED; --azul-esc:#0A38B0; --azul-claro:#E8EFFE;
   --tinta:#0F1B3D; --cinza:#6B7794; --linha:#DCE3F2; --fundo:#F4F7FD;
@@ -25,12 +28,12 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%}
 body{
-  font-family:'Fredoka',system-ui,-apple-system,sans-serif;
+  font-family:'Creato Display',system-ui,-apple-system,sans-serif;
   background:var(--fundo); color:var(--tinta);
   overscroll-behavior-y:none; -webkit-user-select:none; user-select:none;
 }
 input,textarea{-webkit-user-select:text;user-select:text}
-.chewy{font-family:'Chewy',cursive;font-weight:400;letter-spacing:.5px}
+.chewy{font-weight:900;letter-spacing:-.3px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 /* ---------- TELA DE ENTRADA ---------- */
@@ -87,7 +90,7 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
 }
 .prod:active{transform:scale(.96)}
 .prod.tem{border-color:var(--azul);background:var(--azul-claro)}
-.prod .n{font-size:.93rem;font-weight:600;line-height:1.22}
+.prod .n{font-size:.93rem;font-weight:600;line-height:1.22;padding-right:26px}
 .prod .p{font-size:1.15rem;font-weight:700;color:var(--azul);margin-top:8px}
 .prod .badge{
   position:absolute;top:-8px;right:-8px;min-width:28px;height:28px;border-radius:999px;
@@ -95,7 +98,7 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
   display:none;align-items:center;justify-content:center;border:3px solid var(--fundo);padding:0 6px;
 }
 .prod.tem .badge{display:flex}
-.prod.off{opacity:.5;border-color:var(--linha);background:#EDF0F6}
+.prod.off{opacity:.55;border-color:var(--linha);background:#EDF0F6}
 .prod.off .n{text-decoration:line-through}
 .prod.off .p{color:var(--cinza)}
 .prod .esg{
@@ -104,6 +107,35 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
   background:var(--cinza);color:#fff;border-radius:999px;padding:3px 8px;
 }
 .prod.off .esg{display:block}
+
+/* olho: fecha o produto quando acaba, reabre quando volta */
+.olho{
+  position:absolute;top:0;right:0;width:42px;height:42px;
+  display:flex;align-items:center;justify-content:center;border-radius:0 15px 0 14px;
+}
+.olho svg{width:19px;height:19px;stroke:var(--cinza);fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.prod.off .olho svg{stroke:var(--azul);opacity:1}
+.olho:active{background:rgba(13,77,237,.07)}
+
+.avisoFechados{
+  display:none;align-items:center;gap:10px;margin-bottom:11px;padding:10px 13px;
+  border-radius:14px;background:#FFF6DE;color:#7A5300;font-size:.8rem;font-weight:500;
+}
+.avisoFechados.on{display:flex}
+.avisoFechados button{
+  margin-left:auto;flex-shrink:0;background:#7A5300;color:#fff;border-radius:999px;
+  padding:6px 13px;font-size:.75rem;font-weight:700;
+}
+.prod.novo{
+  border-color:var(--azul);border-style:dashed;background:var(--azul-claro);
+  align-items:center;justify-content:center;text-align:center;
+}
+.prod.novo .mais{
+  width:38px;height:38px;border-radius:999px;background:var(--azul);color:#fff;
+  font-size:1.7rem;font-weight:600;line-height:36px;margin:0 auto;
+}
+.prod.novo .n{font-size:.88rem;font-weight:600;color:var(--azul);margin-top:8px}
 .marca-wrap{display:flex;align-items:center;gap:9px}
 .selo{width:26px;height:26px;border-radius:7px;flex-shrink:0}
 .igreja{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;font-size:.78rem;opacity:.92}
@@ -213,7 +245,7 @@ nav button.on{color:var(--azul)}
 .acc .corpo ol,.acc .corpo ul{margin:0;padding-left:19px}
 .acc .corpo li{margin-bottom:5px}
 .acc .corpo .hora{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1.5px solid var(--linha);font-weight:500}
-.acc .corpo .hora b{color:var(--azul);font-family:'Chewy',cursive;font-size:1.1rem;font-weight:400}
+.acc .corpo .hora b{color:var(--azul);font-size:1.05rem;font-weight:900}
 .chk{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1.5px solid var(--linha)}
 .chk .bx{width:21px;height:21px;border:2.5px solid var(--linha);border-radius:7px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff}
 .chk.ok .bx{background:var(--verde);border-color:var(--verde)}
@@ -256,6 +288,10 @@ h3.sec{font-size:1.35rem;margin:2px 0 12px}
   <main>
     <!-- CAIXA -->
     <section class="view on" id="v-caixa">
+      <div class="avisoFechados" id="avisoFechados">
+        <span id="avisoTexto">—</span>
+        <button onclick="reabrirTodos()">Reabrir todos</button>
+      </div>
       <div class="tabs" id="tabsCat"></div>
       <div class="grade" id="grade"></div>
       <div style="height:96px"></div>
@@ -324,6 +360,21 @@ h3.sec{font-size:1.35rem;margin:2px 0 12px}
   </div>
 </div>
 
+<!-- ══════════ FOLHA: ITEM FORA DO CARDÁPIO ══════════ -->
+<div class="folha" id="fAvulso">
+  <div class="veu" onclick="fecharFolha('fAvulso')"></div>
+  <div class="cx">
+    <h2 class="chewy">Item fora do cardápio</h2>
+    <p class="dica">Para o que foi vendido e ainda não está cadastrado, como a fatia de bolo.</p>
+    <label class="rot">O que foi vendido</label>
+    <input id="inpAvNome" class="campo" type="text" placeholder="Ex.: Fatia de bolo" autocapitalize="words" enterkeyhint="next">
+    <label class="rot">Valor cobrado</label>
+    <input id="inpAvValor" class="campo" type="number" inputmode="decimal" step="0.5" min="0" placeholder="R$ 0,00" enterkeyhint="done">
+    <button class="btn" onclick="addAvulso()">Adicionar à venda</button>
+    <button class="btn cinza" onclick="fecharFolha('fAvulso')">Voltar</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="jspdf.umd.min.js"></script>
@@ -334,7 +385,7 @@ h3.sec{font-size:1.35rem;margin:2px 0 12px}
    O controle oficial é o relatório em PDF enviado ao grupo.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSAO_CATALOGO = '2026-09-18';
+const VERSAO_CATALOGO = '2026-09-20';
 
 /* Cardápio embutido, tirado do backup do sistema de 02/08/2026 — só os
    produtos marcados como disponíveis. O custo vem das fichas técnicas e
@@ -348,16 +399,26 @@ const PRODUTOS = [
   {id:'p4',                  nome:'Café Filtrado',              cat:'Bebidas',    preco:4,    custo:0.9359},
   {id:'p17853573785863406',  nome:'Coca da Moda',               cat:'Bebidas',    preco:12,   custo:2.2479},
   {id:'p17853573785867833',  nome:'Pink Limonade',              cat:'Bebidas',    preco:12,   custo:3.4639},
+  {id:'p20260920refri',      nome:'Refrigerante',               cat:'Bebidas',    preco:5,    custo:0},
+  {id:'p20260920cafeleite',  nome:'Café com Leite',             cat:'Bebidas',    preco:4,    custo:0},
+  {id:'p20260920chocg',      nome:'Chocolate Quente Grande',    cat:'Bebidas',    preco:10,   custo:0},
+  {id:'p20260920chocp',      nome:'Chocolate Quente Pequeno',   cat:'Bebidas',    preco:6,    custo:0},
   {id:'p7',                  nome:'Esfiha de Carne',            cat:'Comidas',    preco:8.5,  custo:6.16},
   {id:'p11',                 nome:'Coxinha c/ Catupiry',        cat:'Comidas',    preco:8.5,  custo:6.56},
   {id:'p8',                  nome:'Pão de Queijo',              cat:'Comidas',    preco:6,    custo:1.852},
   {id:'p9',                  nome:'Misto Quente',               cat:'Comidas',    preco:7,    custo:2.91},
   {id:'p10',                 nome:'Croissant de Chocolate',     cat:'Comidas',    preco:10,   custo:7.5},
+  {id:'p20260920bolo',       nome:'Fatia de Bolo',              cat:'Comidas',    preco:8,    custo:0},
   {id:'p1785357954303',      nome:'Halls',                      cat:'Bomboniere', preco:3,    custo:0},
   {id:'p1785358007253',      nome:'Mentos',                     cat:'Bomboniere', preco:3,    custo:0},
   {id:'p1785357994219',      nome:'Trident',                    cat:'Bomboniere', preco:4,    custo:0}
 ];
 const CATEGORIAS = ['Bebidas','Comidas','Bomboniere'];
+
+/* Olho aberto = vendendo. Olho riscado = fechado, não aceita venda.
+   Pedido do André em 20/09: precisava de um toque visível, não de um gesto escondido. */
+const OLHO_ABERTO  = '<svg viewBox="0 0 24 24"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>';
+const OLHO_FECHADO = '<svg viewBox="0 0 24 24"><path d="M2 2l20 20M9.9 5.9A10.6 10.6 0 0112 5.5c7 0 10.5 6.5 10.5 6.5a17 17 0 01-3.9 4.6M6.4 7.4A17 17 0 001.5 12S5 18.5 12 18.5c1.3 0 2.5-.2 3.5-.6M9.8 9.9a3.2 3.2 0 004.4 4.4"/></svg>';
 const PAGAMENTOS = ['Pix','Débito','Crédito','Dinheiro'];
 const PIX_IGREJA = 'pixbighome@gmail.com';
 
@@ -374,11 +435,13 @@ const K = {nome:'bcapp_voluntario', vendas:'bcapp_vendas', chk:'bcapp_checklists
 let VOLUNTARIO = localStorage.getItem(K.nome) || '';
 let VENDAS   = JSON.parse(localStorage.getItem(K.vendas) || '[]');
 let CHECKS   = JSON.parse(localStorage.getItem(K.chk)    || '{}');
-/* produtos que acabaram — vale só para o dia; no domingo seguinte a lista volta limpa */
+/* Produtos fechados pelo olho. Diferente da primeira versão, NÃO zera sozinho na
+   virada do dia: item que saiu do cardápio costuma ficar fora por mais de um domingo.
+   Para ninguém esquecer de reabrir, a aba Caixa mostra um aviso com "reabrir todos". */
 let ESGOT = (() => {
   try{
     const o = JSON.parse(localStorage.getItem(K.esg) || '{}');
-    return o.dia === dataHoje() ? (o.ids || []) : [];
+    return Array.isArray(o.ids) ? o.ids : [];
   }catch(e){ return []; }
 })();
 let carrinho = [];
@@ -462,11 +525,20 @@ function montarGrade(){
     const off  = ESGOT.includes(p.id);
     return `<button class="prod${item?' tem':''}${off?' off':''}" data-id="${p.id}">
       <span class="badge">${item ? item.qtd : ''}</span>
-      <span class="esg">ACABOU</span>
+      <span class="olho" data-olho="${p.id}" aria-label="${off ? 'Reabrir' : 'Fechar'} ${p.nome}">${off ? OLHO_FECHADO : OLHO_ABERTO}</span>
+      <span class="esg">FECHADO</span>
       <div class="n">${p.nome}</div>
       <div class="p">${R(p.preco)}</div>
     </button>`;
-  }).join('');
+  }).join('') + `<button class="prod novo" data-novo="1">
+      <div class="mais">+</div>
+      <div class="n">Fora do cardápio</div>
+    </button>`;
+
+  const av = $('avisoFechados');
+  av.classList.toggle('on', ESGOT.length > 0);
+  if(ESGOT.length) $('avisoTexto').textContent =
+    ESGOT.length === 1 ? '1 produto está fechado' : ESGOT.length + ' produtos estão fechados';
 }
 
 /* Toque curto vende. Segurar 0,7s marca que o produto acabou (e desmarca).
@@ -482,9 +554,16 @@ function alternarEsgotado(id){
     ESGOT.push(id);
     const n = carrinho.findIndex(c => c.id === id);
     if(n >= 0) carrinho.splice(n, 1);
-    toast(p.nome + ': acabou');
+    toast(p.nome + ' fechado');
   }
   vibrar(40); salvar(); montarGrade(); renderBarra();
+}
+function reabrirTodos(){
+  if(!ESGOT.length) return;
+  const n = ESGOT.length;
+  ESGOT.length = 0;
+  vibrar(40); salvar(); montarGrade(); renderBarra();
+  toast(n === 1 ? '1 produto reaberto' : n + ' produtos reabertos');
 }
 (function ligarGrade(){
   const g = $('grade');
@@ -493,6 +572,7 @@ function alternarEsgotado(id){
   const soltar = () => { clearTimeout(timer); timer = null; };
 
   g.addEventListener('pointerdown', e => {
+    if(e.target.closest('[data-olho]')) return;
     const id = alvo(e); if(!id) return;
     segurou = false; x0 = e.clientX; y0 = e.clientY;
     timer = setTimeout(() => { segurou = true; alternarEsgotado(id); }, 700);
@@ -502,6 +582,9 @@ function alternarEsgotado(id){
   });
   ['pointerup','pointercancel','pointerleave'].forEach(ev => g.addEventListener(ev, soltar));
   g.addEventListener('click', e => {
+    const olho = e.target.closest('[data-olho]');
+    if(olho){ e.stopPropagation(); alternarEsgotado(olho.dataset.olho); return; }
+    if(e.target.closest('[data-novo]')){ abrirAvulso(); return; }
     const id = alvo(e); if(!id) return;
     if(segurou){ segurou = false; return; }
     add(id);
@@ -525,6 +608,34 @@ function mudarQtd(id, d){
   if(carrinho[i].qtd <= 0) carrinho.splice(i,1);
   montarGrade(); renderBarra(); renderCarrinhoFolha();
   if(!carrinho.length) fecharFolha('fFinalizar');
+}
+/* Item vendido que ainda não está cadastrado (fatia de bolo, refrigerante de
+   última hora). Antes disso o voluntário tinha duas saídas ruins: não registrar
+   a venda, ou registrar como outro produto. As duas sujavam o relatório. */
+function abrirAvulso(){
+  $('fAvulso').classList.add('on');
+  setTimeout(() => $('inpAvNome').focus(), 260);
+}
+function addAvulso(){
+  const iN = $('inpAvNome'), iV = $('inpAvValor');
+  const nome = iN.value.trim();
+  const valor = parseFloat(String(iV.value).replace(',', '.'));
+  const recusa = (campo, msg) => {
+    campo.classList.add('erro'); campo.focus(); toast(msg);
+    setTimeout(() => campo.classList.remove('erro'), 2000);
+  };
+  if(!nome)        return recusa(iN, 'Escreva o que foi vendido');
+  if(!(valor > 0)) return recusa(iV, 'Escreva o valor cobrado');
+
+  /* custo zero por decisão do André (20/09): o avulso entra com lucro cheio.
+     O relatório destaca esses itens para a ficha técnica ser lançada depois
+     no sistema do computador. */
+  carrinho.push({id:'avulso-' + Date.now(), nome, preco:+valor.toFixed(2), custo:0, qtd:1});
+  iN.value = ''; iV.value = '';
+  fecharFolha('fAvulso');
+  vibrar(18);
+  toast('✓ ' + nome + ' — ' + R(valor));
+  montarGrade(); renderBarra();
 }
 function limparCarrinho(){ carrinho = []; montarGrade(); renderBarra(); }
 
@@ -899,6 +1010,28 @@ function gerarRelatorio(){
     doc.line(ML, y + 1.8, W - MR, y + 1.8);
     y += 6.4;
   });
+
+  /* ---- itens sem custo lançado ----
+     Avulsos digitados no caixa, bomboniere e qualquer produto cadastrado com
+     custo zero. Todos entram com lucro cheio, então o lucro do dia (e o rateio
+     50/50 em cima dele) sai maior do que a realidade. O bloco existe para o
+     custo ser lançado depois no sistema do computador. */
+  const avulsos = VENDAS.filter(v => v.data === dia && v.lucro >= v.total);
+  if(avulsos.length){
+    if(y + 24 > 276){ doc.addPage(); y = 22; }
+    y += 3;
+    doc.setFillColor(255, 246, 222);
+    doc.roundedRect(ML, y, UTIL, 18, 2.5, 2.5, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(146, 100, 0);
+    doc.text('SEM CUSTO LANÇADO · O LUCRO ACIMA SAI MAIOR QUE O REAL', ML + 5, y + 7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    const qtdAv = avulsos.reduce((a, v) => a + v.qtd, 0);
+    const totAv = avulsos.reduce((a, v) => a + v.total, 0);
+    const nomes = [...new Set(avulsos.map(v => v.produto))].join(', ');
+    const linha = doc.splitTextToSize(qtdAv + (qtdAv === 1 ? ' item · ' : ' itens · ') + R(totAv) + ' · ' + nomes, UTIL - 10)[0];
+    doc.text(linha, ML + 5, y + 13);
+    y += 23;
+  }
 
   /* ---- rodapé em todas as páginas ---- */
   const tot = doc.internal.getNumberOfPages();

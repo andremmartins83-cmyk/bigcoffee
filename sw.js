@@ -2,7 +2,7 @@
    Guarda o app no celular para funcionar sem internet no domingo.
    Trocar CACHE ao publicar versão nova força todo mundo a baixar o app atualizado. */
 
-const CACHE = 'bigcoffee-v4-2026-09-18';
+const CACHE = 'bigcoffee-v5-2026-09-20';
 
 const LOCAIS = [
   './',
@@ -11,7 +11,10 @@ const LOCAIS = [
   './jspdf.umd.min.js',
   './icon-192.png',
   './icon-512.png',
-  './bighome.png'
+  './bighome.png',
+  './CreatoDisplay-Regular.otf',
+  './CreatoDisplay-Medium.otf',
+  './CreatoDisplay-Black.otf'
 ];
 
 self.addEventListener('install', e => {

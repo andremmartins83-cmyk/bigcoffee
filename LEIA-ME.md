@@ -6,12 +6,39 @@ relatório no grupo. Funciona sem internet depois da primeira abertura.
 ## O que ele faz
 
 - **Caixa** — toca no produto, escreve o nome de quem paga, escolhe a forma de pagamento.
-  **Segurar o produto por 1 segundo marca que ele acabou**: o card fica cinza, riscado,
-  com o selo ACABOU, e para de aceitar venda. Segurar de novo devolve ao cardápio.
-  A marcação vale só para o dia — no domingo seguinte o cardápio volta inteiro.
+  **Cada produto tem um olho no canto**: tocar nele fecha o produto (card cinza,
+  riscado, selo FECHADO, não aceita venda) e tocar de novo reabre. Segurar o card
+  também funciona, como atalho.
+  O produto fechado **continua fechado nos domingos seguintes**, porque item que sai
+  do cardápio costuma demorar a voltar. Para ninguém esquecer, a aba Caixa mostra uma
+  tarja amarela com quantos estão fechados e o botão **Reabrir todos**.
+  O último cartão da grade é **+ Fora do cardápio**: serve para o que foi vendido e
+  ainda não está cadastrado (fatia de bolo, por exemplo). Pede o nome e o valor
+  cobrado, e entra na venda como um item normal.
 - **Vendas** — lista do dia, com total, ticket médio e opção de excluir.
 - **Como fazer** — receitas das bebidas, horários, funções, higiene e os dois checklists.
 - **Fechar** — gera o relatório em PDF e abre o compartilhar do celular direto no WhatsApp.
+
+## Tipografia e identidade
+
+O app usa o **azul do Big Coffee** com a tipografia da igreja: **Creato Display**,
+a mesma do app de escalas da Big Home (licença SIL Open Font, pode ser distribuída).
+Os três pesos vêm nos arquivos `CreatoDisplay-Regular.otf`, `-Medium.otf` e
+`-Black.otf`, servidos do próprio app — não há mais dependência do Google Fonts,
+então a tipografia aparece igual sem internet.
+
+## Item fora do cardápio e o custo
+
+O item avulso entra **com lucro cheio**, porque não existe ficha técnica para ele
+(decisão do André em 20/09/2026). O mesmo vale para qualquer produto cadastrado com
+custo zero, como a bomboniere e o refrigerante.
+
+Para isso não passar despercebido, o relatório traz no fim um bloco amarelo
+**SEM CUSTO LANÇADO**, com a quantidade, o valor e os nomes dos itens. É o lembrete
+de lançar a ficha no sistema do computador e corrigir o lucro do domingo — o rateio
+50/50 sai desse número.
+
+No arquivo de dados, o item avulso tem `pid` começando em `avulso-`.
 
 ## O que ele não faz, de propósito
 
